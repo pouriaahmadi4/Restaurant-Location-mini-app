@@ -1,13 +1,24 @@
-// Selecting all retaurants(list items in a nodelist to loop throygh)
+//TODO Selecting all retaurants(list items in a nodelist to loop throygh)
 
-const listItems = document.querySelectorAll(".restaurant");
 const links = document.querySelectorAll("a");
 const searchBox = document.querySelector(".search-box");
 const searchBtn = document.querySelector(".search-btn");
 const inputSearch = document.querySelector("#input-search");
 const restaurantsList = document.querySelector(".restaurants-list");
+const listItems = document.querySelectorAll(".restaurant");
+const buttonsContainer = document.querySelector(".buttons");
+const toggleButtons = document.querySelector(".toggle-buttons");
 
-// restaurants array of objects
+//TODO selecting all links in each item for preventing link default (prevent page refresh)
+
+const linkDefaultPreventer = () => {
+  links.forEach((link) => {
+    link.addEventListener("click", (e) => e.preventDefault());
+  });
+};
+
+//TODO restaurants array of objects
+
 const restaurants = [
   {
     id: 1,
@@ -217,63 +228,68 @@ const showRestaurants = function (restaurantsArr) {
             `;
       restaurantsList.insertAdjacentHTML("beforeEnd", newRestaurantHTML);
     });
+    buttonsToggler();
   }
 };
 
-showRestaurants(restaurants);
-
-// Toggling the search field
-searchBtn.addEventListener("click", (e) => {
-  searchBox.classList.toggle("search--active");
-  if (searchBox.classList.contains("search--active")) {
-    setTimeout(() => {
-      inputSearch.focus();
-    }, 500);
-  }
-});
-
-// Search Field Filtering
-inputSearch.addEventListener("input", () => {
-  if (inputSearch.value.length > 0) {
-    console.log("hello entry");
-  }
-});
-
-listItems.forEach((listItem) => {
-  const toggleButtons = listItem.querySelector(".toggle-buttons");
-  const buttonsContainer = listItem.querySelector(".buttons");
-
-  // selecting all links in each item for preventing link default (prevent page refresh)
-
-  links.forEach((link) => {
-    link.addEventListener("click", (e) => e.preventDefault());
-  });
-
-  // call and bookmark buttons visible or not by clicking
-
-  toggleButtons.addEventListener("click", () => {
-    buttonsContainer.classList.toggle("buttons--active");
-    toggleButtons.style.display = buttonsContainer.classList.contains(
-      "buttons--active"
-    )
-      ? "none"
-      : "flex";
-  });
-});
-
-// closing buttonsContainer while clicked outside of it
-document.addEventListener("click", (e) => {
-  listItems.forEach((listItem) => {
-    const buttonsContainer = listItem.querySelector(".buttons");
-    const toggleButtons = listItem.querySelector(".toggle-buttons");
-
-    if (
-      !buttonsContainer.contains(e.target) &&
-      !toggleButtons.contains(e.target) &&
-      !listItem.contains(e.target)
-    ) {
-      buttonsContainer.classList.remove("buttons--active");
-      toggleButtons.style.display = "flex";
+//TODO Toggling the search field
+const searchToggler = () => {
+  searchBtn.addEventListener("click", (e) => {
+    searchBox.classList.toggle("search--active");
+    if (searchBox.classList.contains("search--active")) {
+      setTimeout(() => {
+        inputSearch.focus();
+      }, 500);
     }
   });
+};
+
+//TODO Search Field Filtering
+const searchRes = () => {
+  inputSearch.addEventListener("input", (e) => {
+    if (inputSearch.value.length > 0) {
+      const filteredRestaurants = restaurants.filter((res) =>
+        res.name.toLowerCase().includes(inputSearch.value.trim().toLowerCase())
+      );
+      showRestaurants(filteredRestaurants);
+    } else {
+      showRestaurants(restaurants);
+    }
+  });
+};
+
+//TODO Bookmark and Call buttons sli___iding
+const buttonsToggler = () => {
+  const toggleButtons = document.querySelectorAll(".toggle-buttons");
+
+  toggleButtons.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const slider = e.currentTarget.closest(".restaurant").lastElementChild;
+      slider.classList.toggle("buttons--active");
+
+      btn.style.display = slider.classList.contains("buttons--active")
+        ? "none"
+        : "flex";
+    });
+  });
+
+  //TODO closing buttonsContainer while clicked outside of it
+
+  document.addEventListener("click", (e) => {
+    toggleButtons.forEach((button) => {
+      const slider = button.closest(".restaurant").querySelector(".buttons");
+      if (!slider.contains(e.target) && !button.contains(e.target)) {
+        slider.classList.remove("buttons--active");
+        button.style.display = "flex";
+      }
+    });
+  });
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  linkDefaultPreventer();
+  buttonsToggler();
+  showRestaurants(restaurants);
+  searchToggler();
+  searchRes();
 });
