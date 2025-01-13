@@ -8,6 +8,18 @@ const restaurantsList = document.querySelector(".restaurants-list");
 const listItems = document.querySelectorAll(".restaurant");
 const buttonsContainer = document.querySelector(".buttons");
 const toggleButtons = document.querySelector(".toggle-buttons");
+const modal = document.querySelector(".modal");
+const overlay = document.querySelector(".overlay");
+const addBtn = document.querySelector(".add-btn");
+const btnCloseModal = document.querySelector(".btn--close-modal");
+const sortButtons = document.querySelectorAll(".sort__btn");
+
+//modal elements selection
+const modalResName = document.getElementById("res-name");
+const modalResPicture = document.getElementById("res-picture");
+const modalTagName = document.querySelectorAll(".tag__name");
+const modalAddBtn = document.querySelector(".add__btn");
+const modalTagList = document.querySelector(".tag__list");
 
 //TODO selecting all links in each item for preventing link default (prevent page refresh)
 
@@ -126,9 +138,11 @@ const showRestaurants = function (restaurantsArr) {
     restaurantsArr.forEach((restaurant) => {
       // GENERATE TAGS HTML
       let newTagsHTML = "";
-      restaurant.categories.forEach((category) => {
-        newTagsHTML += `<li class="tag-item"><a href="#">${category}</a></li>`;
-      });
+      if (restaurant.categories && restaurant.categories.length > 0) {
+        restaurant.categories.forEach((category) => {
+          newTagsHTML += `<li class="tag-item"><a href="#">${category}</a></li>`;
+        });
+      }
 
       // GENERATE STARS HTML
       let newStarsHTML = "";
@@ -192,19 +206,8 @@ const showRestaurants = function (restaurantsArr) {
                 
               <div class="buttons">
                 <button class="call-btn">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    style="fill: rgba(19, 134, 19, 1)"
-                  >
-                    <path
-                      d="M16.57 22a2 2 0 0 0 1.43-.59l2.71-2.71a1 1 0 0 0 0-1.41l-4-4a1 1 0 0 0-1.41 0l-1.6 1.59a7.55 7.55 0 0 1-3-1.59 7.62 7.62 0 0 1-1.59-3l1.59-1.6a1 1 0 0 0 0-1.41l-4-4a1 1 0 0 0-1.41 0L2.59 6A2 2 0 0 0 2 7.43 15.28 15.28 0 0 0 6.3 17.7 15.28 15.28 0 0 0 16.57 22zM6 5.41 8.59 8 7.3 9.29a1 1 0 0 0-.3.91 10.12 10.12 0 0 0 2.3 4.5 10.08 10.08 0 0 0 4.5 2.3 1 1 0 0 0 .91-.27L16 15.41 18.59 18l-2 2a13.28 13.28 0 0 1-8.87-3.71A13.28 13.28 0 0 1 4 7.41zM20 11h2a8.81 8.81 0 0 0-9-9v2a6.77 6.77 0 0 1 7 7z"
-                    ></path>
-                    <path d="M13 8c2.1 0 3 .9 3 3h2c0-3.22-1.78-5-5-5z"></path>
-                  </svg>
-              <span>Order</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(201, 23, 23, 1);"><path d="M16 2H8C4.691 2 2 4.691 2 8v13a1 1 0 0 0 1 1h13c3.309 0 6-2.691 6-6V8c0-3.309-2.691-6-6-6zm4 14c0 2.206-1.794 4-4 4H4V8c0-2.206 1.794-4 4-4h8c2.206 0 4 1.794 4 4v8z"></path><path d="M8 11h8v2H8z"></path></svg>
+              <span>Delete</span>
             </button>
             <button class="bookmark-btn">
               <svg
@@ -232,7 +235,7 @@ const showRestaurants = function (restaurantsArr) {
   }
 };
 
-//TODO Toggling the search field
+// Toggling the search field
 const searchToggler = () => {
   searchBtn.addEventListener("click", (e) => {
     searchBox.classList.toggle("search--active");
@@ -241,6 +244,131 @@ const searchToggler = () => {
         inputSearch.focus();
       }, 500);
     }
+  });
+};
+
+//TODO open modal
+const openModal = function () {
+  modal.classList.remove("hidden");
+  overlay.classList.remove("hidden");
+};
+
+//TODO close modal
+const closeModal = function () {
+  modal.classList.add("hidden");
+  overlay.classList.add("hidden");
+};
+
+//TODO Add Restaurant ==> Modal
+const addRestaurant = () => {
+  addBtn.addEventListener("click", openModal);
+  btnCloseModal.addEventListener("click", closeModal);
+
+  document.addEventListener("keydown", function (e) {
+    // console.log(e.key);
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+      closeModal();
+    }
+  });
+};
+
+//TODO creating array of user-selected tags
+
+let selectedTagsArr = [];
+const threeTagsEntry = function () {
+  modalTagName.forEach((tag) => {
+    tag.addEventListener("click", (e) => {
+      const selectedTag = e.target;
+      if (
+        selectedTag.tagName === "LI" &&
+        selectedTag.classList.contains("selected")
+      ) {
+        selectedTag.classList.remove("selected");
+        const tagIndex = selectedTagsArr.indexOf(selectedTag.textContent);
+        if (tagIndex > -1) {
+          selectedTagsArr.splice(tagIndex, 1);
+        }
+      } else if (selectedTagsArr.length < 3) {
+        selectedTag.classList.add("selected");
+        selectedTagsArr.push(selectedTag.textContent);
+      }
+    });
+  });
+  return selectedTagsArr;
+};
+
+//TODO NEW RESTAURANT
+
+function NewRestaurantConstructor(resName, resPicture, selectedTags) {
+  this.id = restaurants.length ? restaurants[restaurants.length - 1].id + 1 : 1;
+  this.name = resName;
+  this.imgUrl = resPicture;
+  this.rating = Number.parseFloat(Math.random() * 5).toFixed(1);
+  this.categories = selectedTags;
+  console.log("New Restaurant:", this);
+  this.distance = Number.parseFloat(Math.random() * 10).toFixed(1);
+}
+
+//TODO constructor and threeTagEntry
+
+const selectedTags = threeTagsEntry();
+function userNewRes() {
+  modalAddBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    console.log("tagsArray", selectedTags);
+    const file = modalResPicture.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const imgUrl = e.target.result;
+        const newItem = new NewRestaurantConstructor(
+          modalResName.value,
+          imgUrl,
+          selectedTagsArr.slice()
+        );
+
+        restaurants.push(newItem);
+        showRestaurants(restaurants);
+        closeModal();
+
+        //initiallization for next item
+        modalResName.value = "";
+        modalResPicture.value = "";
+        selectedTagsArr = [];
+        modalTagList
+          .querySelectorAll(".selected")
+          .forEach((tag) => tag.classList.remove("selected"));
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      alert("Please upload a Restaurant Picture");
+    }
+  });
+}
+
+//TODO Sorting
+const sortRestaurants = function (restaurants, sortType) {
+  switch (sortType) {
+    case "0":
+      return [...restaurants].sort((a, b) => a.name.localeCompare(b.name));
+    case "1":
+      return [...restaurants].sort((a, b) => a.distance - b.distance);
+    case "2":
+      return [...restaurants].sort((a, b) => b.rating - a.rating);
+    default:
+      return restaurants;
+  }
+};
+
+const sortAndRender = function () {
+  sortButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const sortType = btn.getAttribute("data-sort");
+      const sortedRestaurants = sortRestaurants(restaurants, sortType);
+      showRestaurants(sortedRestaurants);
+    });
   });
 };
 
@@ -289,7 +417,10 @@ const buttonsToggler = () => {
 document.addEventListener("DOMContentLoaded", () => {
   linkDefaultPreventer();
   buttonsToggler();
-  showRestaurants(restaurants);
   searchToggler();
   searchRes();
+  addRestaurant();
+  sortAndRender();
+  userNewRes();
+  showRestaurants(restaurants);
 });
